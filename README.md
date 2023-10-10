@@ -5,6 +5,12 @@ build:
 cd ros2_ws
 colcon build
 
+gazebo :
+- https://classic.gazebosim.org/tutorials?tut=ros2_installing&cat=connect_ros#InstallROS2
+
+```
+sudo apt install ros-humble-gazebo-ros-pkgs
+```
 
 Our ros Package :
 

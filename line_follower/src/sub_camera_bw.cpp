@@ -17,6 +17,8 @@ class SubscriberBW : public rclcpp::Node
 {
   public:
     SubscriberBW() : Node("sub_bw_image"){
+        RCLCPP_INFO(this->get_logger(), "Launched Contour detection !");
+
         subscription_ = this->create_subscription<sensor_msgs::msg::Image>("/BWimage", 10, std::bind(&SubscriberBW::img_callback, this, _1));
 
         publisher_ = this->create_publisher<line_follower_interfaces::msg::Histogram>("/histogram", 10);
@@ -44,8 +46,8 @@ class SubscriberBW : public rclcpp::Node
             return;
         }
 
-        cv::imshow("/BWimage image", cv_image_ptr->image);
-        cv::waitKey(1);
+        // cv::imshow("/BWimage image", cv_image_ptr->image);
+        // cv::waitKey(1);
 
         // create_histogram(cv_image_ptr->image);
         computeContours(cv_image_ptr->image);
@@ -86,6 +88,7 @@ class SubscriberBW : public rclcpp::Node
         cv::line(drawing, circle_center, end_center_line, red_color, 2);
 
         cv::imshow("Contours", drawing);
+        cv::waitKey(1);
 
         publishContourData(circle_center, drawing.size());
     }
@@ -100,11 +103,11 @@ class SubscriberBW : public rclcpp::Node
 
         ContourPublisher_->publish(*contour_message_published);
 
-        RCLCPP_INFO(this->get_logger(), "Contour data published !");
+        // RCLCPP_INFO(this->get_logger(), "Contour data published !");
     }
 
     void computeContours(const cv::Mat image) const {
-        RCLCPP_INFO(this->get_logger(), "In compute edge method !");
+        // RCLCPP_INFO(this->get_logger(), "In compute edge method !");
     
         bool recoveryMode = false;
 
@@ -137,8 +140,8 @@ class SubscriberBW : public rclcpp::Node
 
     // old method
     void create_histogram(const cv::Mat image ) const {
-        cv::Size s = image.size();
-        RCLCPP_INFO(this->get_logger(), "In Create histogram method: w %d h %d", s.width, s.height);
+        // cv::Size s = image.size();
+        // RCLCPP_INFO(this->get_logger(), "In Create histogram method: w %d h %d", s.width, s.height);
 
         int value;
         int cols = image.cols;

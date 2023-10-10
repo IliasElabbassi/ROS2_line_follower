@@ -18,6 +18,8 @@ class CameraSubscriber : public rclcpp::Node
     CameraSubscriber()
     : Node("camera_subscriber")
     {
+      RCLCPP_INFO(this->get_logger(), "Launched Image processing !");
+
       subscription_ = this->create_subscription<sensor_msgs::msg::Image>("/camera/image_raw", 10,
                                           std::bind(&CameraSubscriber::image_callback, this, _1));
 
@@ -43,7 +45,7 @@ class CameraSubscriber : public rclcpp::Node
         // CvImagePtr->image is cv:Mat
         displayImage(cv_image_ptr->image);
 
-        RCLCPP_INFO(this->get_logger(), "Image height & width ('%d', '%d')", image_msg->height, image_msg->width);
+        // RCLCPP_INFO(this->get_logger(), "Image height & width ('%d', '%d')", image_msg->height, image_msg->width);
     }
 
     int displayImage(cv::Mat image) const {
@@ -53,7 +55,7 @@ class CameraSubscriber : public rclcpp::Node
       }
 
       int blur_kernel_size = 9;
-      int threshold_value = 192;
+      int threshold_value = 180; // change this value to better fit your camera / world / lighting
       cv::Mat blurred_image, gray_scale_image, binary_image;
 
 

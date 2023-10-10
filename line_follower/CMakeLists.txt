@@ -25,7 +25,7 @@ ament_target_dependencies(sub_bw_image rclcpp std_msgs sensor_msgs cv_bridge ima
 
 # take binary image and compute and histogram
 add_executable(follow_line src/follow_line.cpp)
-ament_target_dependencies(follow_line rclcpp std_msgs sensor_msgs line_follower_interfaces)
+ament_target_dependencies(follow_line rclcpp std_msgs sensor_msgs line_follower_interfaces OpenCV)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
