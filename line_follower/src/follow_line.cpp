@@ -30,10 +30,18 @@ class FollowLine : public rclcpp::Node
             // {hypotenuse, adjacent, opposée}
             std::vector<int> vector_distance = compute_distances(contour_moment_msg);
 
-            for(auto val : vector_distance) {
-                std::cout << val << " ";
+            int side = check_lef_right(contour_moment_msg); // 1 : left   2 : right
+
+            if (side == 1) {
+                std::cout << "side : left" << std::endl;
+            } else {
+                std::cout << "side : right" << std::endl;
             }
-            std::cout << std::endl;
+
+            // for(auto val : vector_distance) {
+            //     std::cout << val << " ";
+            // }
+            // std::cout << std::endl;
             
             int opposee = vector_distance[2];
             int hypotenuse = vector_distance[0];
@@ -100,8 +108,19 @@ class FollowLine : public rclcpp::Node
             return (std::asin(param)*180/3.1415);
         }
 
-        void compute_move_ratio(consts double angle) const{
-            
+        int check_lef_right(const line_follower_interfaces::msg::Contour::SharedPtr contour_moment_msg) const {
+            cv::Point C;
+
+            C.x = contour_moment_msg->centroid_x;
+            C.y = contour_moment_msg->centroid_y;
+
+            int width_center = contour_moment_msg->image_width / 2;
+
+            if(C.x >= width_center) {
+                return 2; // centroid in the right of the camera
+            }
+
+            return 1; // centroid in the left of the camera
         }
 
         void move(){
