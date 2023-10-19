@@ -27,6 +27,10 @@ ament_target_dependencies(sub_bw_image rclcpp std_msgs sensor_msgs cv_bridge ima
 add_executable(follow_line src/follow_line.cpp)
 ament_target_dependencies(follow_line rclcpp std_msgs sensor_msgs line_follower_interfaces OpenCV)
 
+# take binary image and compute and histogram
+add_executable(pid_control_server src/pid_control_server.cpp)
+ament_target_dependencies(pid_control_server rclcpp line_follower_interfaces OpenCV)
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
@@ -43,6 +47,7 @@ install(TARGETS
   camera_opencv_lf
   sub_bw_image
   follow_line
+  pid_control_server
   DESTINATION lib/${PROJECT_NAME}
 )
 
