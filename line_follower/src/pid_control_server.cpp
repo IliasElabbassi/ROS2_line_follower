@@ -9,7 +9,7 @@ class PID_controler : public rclcpp::Node
 public:
     PID_controler() : Node("pid_controller") {
         RCLCPP_INFO(this->get_logger(), "Launched PID controler Node !");
-        PIDservice = this->create_service<line_follower_interfaces::srv::Angle>("getPidOutput",  std::bind(&PID_controler::calculateControlOutput, this, std::placeholders::_1, std::placeholders::_2));
+        PIDservice = this->create_service<line_follower_interfaces::srv::Angle>("/getPidOutput",  std::bind(&PID_controler::calculateControlOutput, this, std::placeholders::_1, std::placeholders::_2));
     }
 
 private:

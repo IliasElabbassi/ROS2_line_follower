@@ -20,7 +20,7 @@ class FollowLine : public rclcpp::Node
 
             CmdVelpublisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
             ContourSubscription = this->create_subscription<line_follower_interfaces::msg::Contour>("/contourMoment", 10, std::bind(&FollowLine::handleMovement, this, _1));
-            PID_client = this->create_client<line_follower_interfaces::srv::Angle>("getPidOutput");
+            PID_client = this->create_client<line_follower_interfaces::srv::Angle>("/getPidOutput");
         }
 
     private:
@@ -46,7 +46,7 @@ class FollowLine : public rclcpp::Node
 
             double angle = compute_angle_degree(opposee, hypotenuse);
             
-            // pid_request(angle, side);
+            pid_request(angle, side);
 
             std::cout << "angle CBD : " << angle << std::endl;
         }
