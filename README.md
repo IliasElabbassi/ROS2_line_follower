@@ -1,7 +1,7 @@
 # information
 
 <p align="center">
-    <img src="./img/architecture.jpg" alt="architecture" width="200"/>
+    <img src="./img/architecture.jpg" alt="architecture"/>
 </p>
 
 # misc
