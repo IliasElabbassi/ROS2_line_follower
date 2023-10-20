@@ -1,3 +1,11 @@
+# information
+
+<p align="center">
+    <img src="./img/architecture.jpg" alt="architecture" width="200"/>
+</p>
+
+# misc
+
 create package:
 ros2 pkg create linefollower
 

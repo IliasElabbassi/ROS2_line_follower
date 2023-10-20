@@ -27,8 +27,9 @@ class FollowLine : public rclcpp::Node
         rclcpp::Subscription<line_follower_interfaces::msg::Contour>::SharedPtr ContourSubscription;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr CmdVelpublisher_;
         rclcpp::Client<line_follower_interfaces::srv::Angle>::SharedPtr PID_client;
+        bool wait = false;
         
-        void handleMovement(const line_follower_interfaces::msg::Contour::SharedPtr contour_moment_msg) const{
+        void handleMovement(const line_follower_interfaces::msg::Contour::SharedPtr contour_moment_msg) {
             // {hypotenuse, adjacent, opposée}
             std::vector<int> vector_distance = compute_distances(contour_moment_msg);
 
@@ -44,6 +45,7 @@ class FollowLine : public rclcpp::Node
             int hypotenuse = vector_distance[0];
 
             double angle = compute_angle_degree(opposee, hypotenuse);
+            
             // pid_request(angle, side);
 
             std::cout << "angle CBD : " << angle << std::endl;
@@ -103,32 +105,41 @@ class FollowLine : public rclcpp::Node
             return 1; // centroid in the left of the camera
         }
 
-        int pid_request(double angle, int side) const {
+        int pid_request(double angle, int side) {
+            std::cout << "in pid_request" << std::endl;
+
             auto request = std::make_shared<line_follower_interfaces::srv::Angle::Request>();
             request->angle = angle;
             request->side = side;
             
             std::chrono::seconds one_second(1);
 
+            std::cout << "before wait for service" << std::endl;
+
             if(!PID_client->wait_for_service(one_second)){
                 if (!rclcpp::ok()) {
                     RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
-                    return 0;
+                    return -1;
                 }
                 RCLCPP_INFO(this->get_logger(), "PID service not available, waiting again...");
             }
 
+            std::cout << "after wait for service" << std::endl;
+
+
             // Make a service request
-            auto result = PID_client->async_send_request(request);
-
+            auto future_result = PID_client->async_send_request(request);
+ 
             // Process the response
-            result.wait();
+            auto node_base = this->get_node_base_interface();
 
-            if (result.get()) {
-                RCLCPP_INFO(this->get_logger(), "Service call was successful. Result: %f", result.get()->pid_output);
-            } else {
-                RCLCPP_ERROR(this->get_logger(), "Service call failed.");
+            if (rclcpp::spin_until_future_complete(node_base, future_result) == rclcpp::FutureReturnCode::SUCCESS) {
+                RCLCPP_INFO(this->get_logger(), "pid_output : %f", future_result.get()->pid_output);
             }
+
+            std::cout << "end pid_request" << std::endl;
+
+            return 0;
         }
 
         void move(){
