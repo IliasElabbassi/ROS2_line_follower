@@ -86,3 +86,5 @@ the basic things that you will need to change are:
 - use the callback group/subscriber options in the create_* calls
     - a. for the subscriber, use the SubscriptionOptions as the last argument to the create_subscription call (see here: https://github.com/ros2/examples/blob/master/rclcpp/executors/multithreaded_executor/multithreaded_executor.cpp#L104C4-L104C4)
     - b. for the client, use the other callback group in the third argument to the create_client function (second arg is QoS, see here: https://github.com/ros2/rclcpp/blob/rolling/rclcpp/include/rclcpp/node.hpp#L287)
+
+https://github.com/ROS-Spanish-Users-Group/ros2_documentation/blob/a3b6c8215c72c95caa2cc44963ff92219376ac27/source/How-To-Guides/Using-callback-groups.rst#L307

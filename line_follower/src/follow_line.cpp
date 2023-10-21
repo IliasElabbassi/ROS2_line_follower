@@ -30,8 +30,9 @@ class FollowLine : public rclcpp::Node
 
             CmdVelpublisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
            
-            ContourSubscription = this->create_subscription<line_follower_interfaces::msg::Contour>("/contourMoment", 10, std::bind(&FollowLine::handleMovement, this, _1), contour_sub_opt);
-            // PID_client = this->create_client<line_follower_interfaces::srv::Angle>("/getPidOutput", 10, std::bind(&FollowLine::pid_request, this, _1), service_client_opt);
+            ContourSubscription = this->create_subscription<line_follower_interfaces::msg::Contour>("/contourMoment", rclcpp::QoS(10), std::bind(&FollowLine::handleMovement, this, _1), contour_sub_opt);
+            
+            PID_client = this->create_client<line_follower_interfaces::srv::Angle>("/getPidOutput", rmw_qos_profile_services_default,  callback_group_service_client);
         }
 
     private:
@@ -59,6 +60,8 @@ class FollowLine : public rclcpp::Node
             int hypotenuse = vector_distance[0];
 
             computed_angle = compute_angle_degree(opposee, hypotenuse);
+
+            pid_request();
 
             std::cout << "angle CBD : " << computed_angle << std::endl;
         }
@@ -125,8 +128,6 @@ class FollowLine : public rclcpp::Node
             
             std::chrono::seconds one_second(1);
 
-            std::cout << "before wait for service" << std::endl;
-
             if(!PID_client->wait_for_service(one_second)){
                 if (!rclcpp::ok()) {
                     RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
@@ -135,17 +136,24 @@ class FollowLine : public rclcpp::Node
                 RCLCPP_INFO(this->get_logger(), "PID service not available, waiting again...");
             }
 
-            std::cout << "after wait for service" << std::endl;
-
             // Make a service request
             auto future_result = PID_client->async_send_request(request);
  
             // Process the response
-            auto node_base = this->get_node_base_interface();
+            // auto node_base = this->get_node_base_interface();
 
-            if (rclcpp::spin_until_future_complete(node_base, future_result) == rclcpp::FutureReturnCode::SUCCESS) {
+            std::chrono::seconds three_second(3);
+
+            std::future_status status = future_result.wait_for(three_second);
+
+            if (status == std::future_status::ready) {
+                RCLCPP_INFO(this->get_logger(), "Received response");
                 RCLCPP_INFO(this->get_logger(), "pid_output : %f", future_result.get()->pid_output);
             }
+
+            // if (rclcpp::spin_until_future_complete(node_base, future_result) == rclcpp::FutureReturnCode::SUCCESS) {
+            //     RCLCPP_INFO(this->get_logger(), "pid_output : %f", future_result.get()->pid_output);
+            // }
 
             std::cout << "end pid_request" << std::endl;
         }
