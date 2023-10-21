@@ -68,3 +68,21 @@ ros2 launch bocchi_bot launch_sim.launch.py world:=./src/bocchi_bot/worlds/lfm1.
 
 call service server via cli :
 `ros2 service call /getPidOutput line_follower_interfaces/srv/Angle "{angle: 30, side: 1}"`
+
+### Trouble shoot 
+
+```
+runtime_error
+Node '/follow_line' has already been added to an executor.
+```
+
+the basic things that you will need to change are:
+- swap out the rclcpp::spin() call in your main function to be a multithreaded executor (see here: https://github.com/ros2/examples/blob/master/rclcpp/executors/multithreaded_executor/multithreaded_executor.cpp#L167)
+
+- create two mutually exclusive callback groups
+
+- create a SubscriptionOptions object, and assign one of the callback groups to it (see here: https://github.com/ros2/examples/blob/master/rclcpp/executors/multithreaded_executor/multithreaded_executor.cpp#L86)
+
+- use the callback group/subscriber options in the create_* calls
+    - a. for the subscriber, use the SubscriptionOptions as the last argument to the create_subscription call (see here: https://github.com/ros2/examples/blob/master/rclcpp/executors/multithreaded_executor/multithreaded_executor.cpp#L104C4-L104C4)
+    - b. for the client, use the other callback group in the third argument to the create_client function (second arg is QoS, see here: https://github.com/ros2/rclcpp/blob/rolling/rclcpp/include/rclcpp/node.hpp#L287)

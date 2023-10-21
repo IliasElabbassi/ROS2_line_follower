@@ -18,23 +18,38 @@ class FollowLine : public rclcpp::Node
         FollowLine() : Node("follow_line") {
             RCLCPP_INFO(this->get_logger(), "Launched line following !");
 
+
+            callback_group_contour_subscription = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+            callback_group_service_client = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
+            auto contour_sub_opt = rclcpp::SubscriptionOptions();
+            contour_sub_opt.callback_group = callback_group_contour_subscription;
+
+            auto service_client_opt = rclcpp::SubscriptionOptions();
+            service_client_opt.callback_group = callback_group_service_client;
+
             CmdVelpublisher_ = this->create_publisher<geometry_msgs::msg::Twist>("/cmd_vel", 10);
-            ContourSubscription = this->create_subscription<line_follower_interfaces::msg::Contour>("/contourMoment", 10, std::bind(&FollowLine::handleMovement, this, _1));
-            PID_client = this->create_client<line_follower_interfaces::srv::Angle>("/getPidOutput");
+           
+            ContourSubscription = this->create_subscription<line_follower_interfaces::msg::Contour>("/contourMoment", 10, std::bind(&FollowLine::handleMovement, this, _1), contour_sub_opt);
+            // PID_client = this->create_client<line_follower_interfaces::srv::Angle>("/getPidOutput", 10, std::bind(&FollowLine::pid_request, this, _1), service_client_opt);
         }
 
     private:
         rclcpp::Subscription<line_follower_interfaces::msg::Contour>::SharedPtr ContourSubscription;
-        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr CmdVelpublisher_;
         rclcpp::Client<line_follower_interfaces::srv::Angle>::SharedPtr PID_client;
+        rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr CmdVelpublisher_;
+        rclcpp::CallbackGroup::SharedPtr callback_group_contour_subscription;
+        rclcpp::CallbackGroup::SharedPtr callback_group_service_client;
+        double computed_angle = 0;
+        int computed_side = 1;
         
         void handleMovement(const line_follower_interfaces::msg::Contour::SharedPtr contour_moment_msg) {
             // {hypotenuse, adjacent, opposée}
             std::vector<int> vector_distance = compute_distances(contour_moment_msg);
 
-            int side = check_lef_right(contour_moment_msg); // 1 : left   2 : right
+            computed_side = check_lef_right(contour_moment_msg); // 1 : left   2 : right
 
-            if (side == 1) {
+            if (computed_side == 1) {
                 std::cout << "side : left" << std::endl;
             } else {
                 std::cout << "side : right" << std::endl;
@@ -43,11 +58,9 @@ class FollowLine : public rclcpp::Node
             int opposee = vector_distance[2];
             int hypotenuse = vector_distance[0];
 
-            double angle = compute_angle_degree(opposee, hypotenuse);
-            
-            pid_request(angle, side);
+            computed_angle = compute_angle_degree(opposee, hypotenuse);
 
-            std::cout << "angle CBD : " << angle << std::endl;
+            std::cout << "angle CBD : " << computed_angle << std::endl;
         }
 
         std::vector<int> compute_distances(const line_follower_interfaces::msg::Contour::SharedPtr contour_moment_msg) const {
@@ -104,12 +117,11 @@ class FollowLine : public rclcpp::Node
             return 1; // centroid in the left of the camera
         }
 
-        int pid_request(double angle, int side) {
+        void pid_request() {
             std::cout << "in pid_request" << std::endl;
 
             auto request = std::make_shared<line_follower_interfaces::srv::Angle::Request>();
-            request->angle = angle;
-            request->side = side;
+            request->angle = computed_angle;
             
             std::chrono::seconds one_second(1);
 
@@ -118,13 +130,12 @@ class FollowLine : public rclcpp::Node
             if(!PID_client->wait_for_service(one_second)){
                 if (!rclcpp::ok()) {
                     RCLCPP_ERROR(this->get_logger(), "Interrupted while waiting for the service. Exiting.");
-                    return -1;
+                    return;
                 }
                 RCLCPP_INFO(this->get_logger(), "PID service not available, waiting again...");
             }
 
             std::cout << "after wait for service" << std::endl;
-
 
             // Make a service request
             auto future_result = PID_client->async_send_request(request);
@@ -137,8 +148,6 @@ class FollowLine : public rclcpp::Node
             }
 
             std::cout << "end pid_request" << std::endl;
-
-            return 0;
         }
 
         void move(){
@@ -152,8 +161,13 @@ class FollowLine : public rclcpp::Node
 
 int main(int argc, char * argv[])
 {
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<FollowLine>());
-  rclcpp::shutdown();
-  return 0;
+    rclcpp::init(argc, argv);
+
+    // we must use the MultiThreadedExecutor multiple threads
+    rclcpp::executors::MultiThreadedExecutor executor;
+    auto follow_line_node = std::make_shared<FollowLine>();
+    executor.add_node(follow_line_node);
+    executor.spin();
+    rclcpp::shutdown();
+    return 0;
 }
