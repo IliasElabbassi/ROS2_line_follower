@@ -15,9 +15,9 @@ public:
 private:
     rclcpp::Service<line_follower_interfaces::srv::Angle>::SharedPtr PIDservice;
     
-    double kp_ = 1;
-    double ki_ = 1;
-    double kd_ = 1.0;
+    double kp_ = 0.5;
+    double ki_ = 0.1;
+    double kd_ = 0.2;
     double setpoint_ = 0.0;
 
     double integral_ = 0.0;

@@ -27,7 +27,6 @@ class FollowLine : public rclcpp::Node
         rclcpp::Subscription<line_follower_interfaces::msg::Contour>::SharedPtr ContourSubscription;
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr CmdVelpublisher_;
         rclcpp::Client<line_follower_interfaces::srv::Angle>::SharedPtr PID_client;
-        bool wait = false;
         
         void handleMovement(const line_follower_interfaces::msg::Contour::SharedPtr contour_moment_msg) {
             // {hypotenuse, adjacent, opposée}

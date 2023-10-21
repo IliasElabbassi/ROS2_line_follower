@@ -64,3 +64,7 @@ ros2 launch bocchi_bot launch_sim.launch.py
 
 with world as parameter :
 ros2 launch bocchi_bot launch_sim.launch.py world:=./src/bocchi_bot/worlds/lfm1.world
+
+
+call service server via cli :
+`ros2 service call /getPidOutput line_follower_interfaces/srv/Angle "{angle: 30, side: 1}"`
