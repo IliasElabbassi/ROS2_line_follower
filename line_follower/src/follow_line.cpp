@@ -43,6 +43,7 @@ class FollowLine : public rclcpp::Node
         rclcpp::CallbackGroup::SharedPtr callback_group_service_client;
         double computed_angle = 0;
         int computed_side = 1;
+        double pid_output = 0;
         
         void handleMovement(const line_follower_interfaces::msg::Contour::SharedPtr contour_moment_msg) {
             // {hypotenuse, adjacent, opposée}
@@ -62,6 +63,7 @@ class FollowLine : public rclcpp::Node
             computed_angle = compute_angle_degree(opposee, hypotenuse);
 
             pid_request();
+            move();
 
             std::cout << "angle CBD : " << computed_angle << std::endl;
         }
@@ -121,8 +123,6 @@ class FollowLine : public rclcpp::Node
         }
 
         void pid_request() {
-            std::cout << "in pid_request" << std::endl;
-
             auto request = std::make_shared<line_follower_interfaces::srv::Angle::Request>();
             request->angle = computed_angle;
             
@@ -139,29 +139,23 @@ class FollowLine : public rclcpp::Node
             // Make a service request
             auto future_result = PID_client->async_send_request(request);
  
-            // Process the response
-            // auto node_base = this->get_node_base_interface();
-
             std::chrono::seconds three_second(3);
-
             std::future_status status = future_result.wait_for(three_second);
 
             if (status == std::future_status::ready) {
-                RCLCPP_INFO(this->get_logger(), "Received response");
-                RCLCPP_INFO(this->get_logger(), "pid_output : %f", future_result.get()->pid_output);
+                pid_output = future_result.get()->pid_output;
+                RCLCPP_INFO(this->get_logger(), "pid_output : %f", pid_output);
             }
-
-            // if (rclcpp::spin_until_future_complete(node_base, future_result) == rclcpp::FutureReturnCode::SUCCESS) {
-            //     RCLCPP_INFO(this->get_logger(), "pid_output : %f", future_result.get()->pid_output);
-            // }
-
-            std::cout << "end pid_request" << std::endl;
         }
 
         void move(){
             geometry_msgs::msg::Twist twist_msg;
             twist_msg.linear.x = 0.2; // Move forward at 0.5 m/s
-            twist_msg.angular.z = 0.2; // Rotate at 0.1 rad/s
+            if(computed_side == 1) {
+                twist_msg.angular.z = pid_output / 100; // Rotate at 0.1 rad/s
+            } else {
+                twist_msg.angular.z = -pid_output / 100; // Rotate at 0.1 rad/s
+            }
 
             CmdVelpublisher_->publish(twist_msg);
         }

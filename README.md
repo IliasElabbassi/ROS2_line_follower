@@ -4,6 +4,12 @@
     <img src="./img/architecture.jpg" alt="architecture"/>
 </p>
 
+# TODO
+
+- find better pid values
+- get contour with the biggest area
+- add light automatically in the gazebo environement
+
 # misc
 
 create package:
@@ -68,6 +74,9 @@ ros2 launch bocchi_bot launch_sim.launch.py world:=./src/bocchi_bot/worlds/lfm1.
 
 call service server via cli :
 `ros2 service call /getPidOutput line_follower_interfaces/srv/Angle "{angle: 30, side: 1}"`
+
+reset command velocity : 
+`ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}"`
 
 ### Trouble shoot 
 

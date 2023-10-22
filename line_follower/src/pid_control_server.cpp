@@ -16,8 +16,8 @@ private:
     rclcpp::Service<line_follower_interfaces::srv::Angle>::SharedPtr PIDservice;
     
     double kp_ = 0.5;
-    double ki_ = 0.1;
-    double kd_ = 0.2;
+    double ki_ = 0;
+    double kd_ = 0;
     double setpoint_ = 0.0;
 
     double integral_ = 0.0;
@@ -27,7 +27,7 @@ private:
                                         std::shared_ptr<line_follower_interfaces::srv::Angle::Response> response) {
         integral_ += request->angle;
         double derivative = request->angle - previous_error_;
-        double control_output = kp_ * request->angle + ki_ * integral_ + kd_ * derivative;
+        double control_output = (kp_ * request->angle) + (ki_ * integral_) + (kd_ * derivative);
         previous_error_ = request->angle;
 
         response->pid_output = control_output;
