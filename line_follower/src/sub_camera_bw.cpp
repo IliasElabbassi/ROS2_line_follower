@@ -63,8 +63,21 @@ class SubscriberBW : public rclcpp::Node
     }
 
     void computeMoment(const std::vector<std::vector<cv::Point>> contours, cv::Mat drawing) const {
+        int idx_largest_area = 0;
+        int area = cv::contourArea(contours[0], false);
+        int temp_area;
+
+        // Find the contour with the largest area
+        for( int n = 1; n < (int)contours.size(); n++ ) {
+            temp_area = contourArea(contours[n], false);
+            if(temp_area > area){
+                area = temp_area;
+                idx_largest_area = n;
+            }
+        }
+
         // Calculate the moments of the contour
-        cv::Moments contourMoments = cv::moments(contours[0]);
+        cv::Moments contourMoments = cv::moments(contours[idx_largest_area]);
 
         // Calculate the centroid (center of mass) of the contour
         double cx = contourMoments.m10 / contourMoments.m00;

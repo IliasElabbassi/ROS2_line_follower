@@ -7,7 +7,7 @@
 # TODO
 
 - find better pid values
-- get contour with the biggest area
+- get contour with the biggest area  [ done ]
 - add light automatically in the gazebo environement
 
 # misc
