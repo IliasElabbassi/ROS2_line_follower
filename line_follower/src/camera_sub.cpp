@@ -20,7 +20,7 @@ class CameraSubscriber : public rclcpp::Node
     {
       RCLCPP_INFO(this->get_logger(), "Launched Image processing !");
 
-      subscription_ = this->create_subscription<sensor_msgs::msg::Image>("/camera/image_raw", 10,
+      subscription_ = this->create_subscription<sensor_msgs::msg::Image>("/camera/image_raw", 60,
                                           std::bind(&CameraSubscriber::image_callback, this, _1));
 
       BWpublisher_ = this->create_publisher<sensor_msgs::msg::Image>("BWimage", 10);

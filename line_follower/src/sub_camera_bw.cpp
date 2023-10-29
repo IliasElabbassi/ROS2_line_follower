@@ -19,7 +19,7 @@ class SubscriberBW : public rclcpp::Node
     SubscriberBW() : Node("sub_bw_image"){
         RCLCPP_INFO(this->get_logger(), "Launched Contour detection !");
 
-        subscription_ = this->create_subscription<sensor_msgs::msg::Image>("/BWimage", 10, std::bind(&SubscriberBW::img_callback, this, _1));
+        subscription_ = this->create_subscription<sensor_msgs::msg::Image>("/BWimage", 60, std::bind(&SubscriberBW::img_callback, this, _1));
 
         publisher_ = this->create_publisher<line_follower_interfaces::msg::Histogram>("/histogram", 10);
         ContourPublisher_ = this->create_publisher<line_follower_interfaces::msg::Contour>("/contourMoment", 10);

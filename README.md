@@ -4,6 +4,20 @@
     <img src="./img/architecture.jpg" alt="architecture"/>
 </p>
 
+
+# installation prerequis
+
+- ROS2 Humble
+- Gazebo
+- ros-humble-gazebo-ros-pkgs
+- Xacro
+
+# installation
+
+`sudo apt install gazebo`
+`sudo apt install ros-humnle-gazebo-ros-pkgs`
+`sudo apt install ros-humnle-xacro`
+
 # TODO
 
 - find better pid values
